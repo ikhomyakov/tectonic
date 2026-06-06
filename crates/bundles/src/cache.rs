@@ -136,35 +136,37 @@ impl<'this, T: FileIndex<'this>> BundleCache<'this, T> {
             }
         };
 
-        let live_hash = bundle.get_digest();
-
-        // Check remote bundle digest
-        let bundle_hash: DigestData = match (saved_hash, live_hash) {
-            (None, Err(e)) => {
-                bail!("this bundle isn't cached, and we couldn't get it from the internet. Error: {e}");
+        // ===== BEGIN AWARE REPORTS PATCH =====================================
+        // A warm cache must not phone home. Upstream replaces this whole block
+        // with an unconditional `let live_hash = bundle.get_digest();` followed
+        // by a `match (saved_hash, live_hash)`, so for a network bundle it does a
+        // remote round-trip on *every* open even when every needed file is already
+        // cached — a large per-invocation slowdown versus the pre-0.4 caching
+        // bundle, which short-circuited on a warm cache ("avoid connecting to the
+        // backend if at all possible"; see upstream issue #456: a warm cache
+        // should not contact the server). We restore that by matching on the
+        // cache state directly: a cached digest is trusted as-is (no network, no
+        // per-open freshness re-check); only a cold cache that is allowed to use
+        // the network fetches the live digest; an offline (`only_cached`) cold
+        // cache fails fast without connecting. Aware Reports carries this fix
+        // (commit msg / repo: tptools-rust) until it is upstreamed.
+        let bundle_hash: DigestData = match saved_hash {
+            Some(cached) => cached,
+            None if only_cached => bail!(
+                "bundle is not cached and offline mode forbids network access"
+            ),
+            None => {
+                let live = bundle
+                    .get_digest()
+                    .context("while fetching the bundle digest from the network")?;
+                file_create_write(&hash_file, |f| writeln!(f, "{}", &live.to_string()))
+                    .with_context(|| {
+                        format!("while writing bundle hash to {hash_file:?} in cache")
+                    })?;
+                live
             }
-            (Some(s), Ok(l)) => {
-                if s != l {
-                    // Silently update hash in cache.
-                    // We don't need to delete anything, since data is indexed by hash.
-                    // TODO: show a warning
-                    file_create_write(&hash_file, |f| writeln!(f, "{}", &l.to_string()))
-                        .with_context(|| {
-                            format!("while updating bundle hash in {hash_file:?} in cache")
-                        })?;
-                    l
-                } else {
-                    l
-                }
-            }
-            (None, Ok(l)) => {
-                file_create_write(&hash_file, |f| writeln!(f, "{}", &l.to_string())).with_context(
-                    || format!("while writing bundle hash to {hash_file:?} in cache"),
-                )?;
-                l
-            }
-            (Some(h), Err(_)) => h, // Bundle is offline, but we're ok.
         };
+        // ===== END AWARE REPORTS PATCH =======================================
 
         let bundle = BundleCache {
             only_cached,
