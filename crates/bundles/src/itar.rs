@@ -228,6 +228,16 @@ impl CachableBundle<'_, ItarFileIndex> for ItarBundle {
             Err(e) => return OpenResult::Err(e),
         };
 
+        // BEGIN AWARE REPORTS PATCH
+        // When BundleCache pre-loads the index from the local cache,
+        // ensure_index() early-returns without ever connecting the range
+        // reader, and the unwrap below panics on any cache miss. Upstream
+        // 0.4.x only avoided this because its warm-cache get_digest()
+        // phone-home connected the reader as a side effect. Connect lazily
+        // here — exactly when a miss actually needs the network.
+        self.connect_reader();
+        // END AWARE REPORTS PATCH
+
         let mut v = Vec::with_capacity(info.length);
         tt_note!(status, "downloading {}", info.name);
 

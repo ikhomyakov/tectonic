@@ -1,10 +1,14 @@
 # The `aware-tectonic-bundles` crate
 
-> **Aware Software fork** of [`tectonic_bundles`] 0.4.1. The only functional
-> change is in `src/cache.rs` (fenced `AWARE REPORTS PATCH`): a warm bundle
-> cache is served without contacting the network — upstream 0.4.x re-fetches
-> the bundle digest on every bundle open, adding a network round-trip (and a
-> hard network dependency) to every run even when all files are cached.
+> **Aware Software fork** of [`tectonic_bundles`] 0.4.1. Two functional
+> changes, both fenced `AWARE REPORTS PATCH`: (1) `src/cache.rs` — a warm
+> bundle cache is served without contacting the network; upstream 0.4.x
+> re-fetches the bundle digest on every bundle open, adding a network
+> round-trip (and a hard network dependency) to every run even when all
+> files are cached. (2) `src/itar.rs` — connect the range reader lazily in
+> `open_fileinfo`; upstream never connects it when the index comes from the
+> local cache and panics (`Option::unwrap` on `None`) on any cache miss, a
+> latent bug previously masked by the digest phone-home's side effect.
 > The library name is kept as `tectonic_bundles`, so `use tectonic_bundles::…`
 > works unchanged. Maintained at <https://github.com/ikhomyakov/tectonic>;
 > intended for use by [`aware-tectonic`].
