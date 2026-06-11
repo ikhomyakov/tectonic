@@ -6,18 +6,24 @@
 lints.workspace = true
 
 [package]
-name = "tectonic_bundles"
+name = "aware-tectonic-bundles"
 version = "0.4.1"
 authors = ["Peter Williams <peter@newton.cx>"]
 description = """
-Tectonic "bundle" (support file collection) implementations.
+Tectonic "bundle" (support file collection) implementations — Aware Software fork of
+tectonic_bundles 0.4.1 that does not contact the network when the bundle cache is warm.
 """
 homepage = "https://tectonic-typesetting.github.io/"
-documentation = "https://docs.rs/tectonic_bundles"
-repository = "https://github.com/tectonic-typesetting/tectonic/"
+documentation = "https://docs.rs/aware-tectonic-bundles"
+repository = "https://github.com/ikhomyakov/tectonic/"
 readme = "README.md"
 license = "MIT"
 edition = "2021"
+
+# The fork keeps the upstream library name so `use tectonic_bundles::...`
+# works unchanged in consumers and in this repo's own crates and doctests.
+[lib]
+name = "tectonic_bundles"
 
 [dependencies]
 flate2 = { version = "^1.0.19", default-features = false, features = ["zlib"] }

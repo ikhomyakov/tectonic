@@ -1,6 +1,16 @@
-# The `tectonic_bundles` crate
+# The `aware-tectonic-bundles` crate
 
-[![](http://meritbadge.herokuapp.com/tectonic_bundles)](https://crates.io/crates/tectonic_bundles)
+> **Aware Software fork** of [`tectonic_bundles`] 0.4.1. The only functional
+> change is in `src/cache.rs` (fenced `AWARE REPORTS PATCH`): a warm bundle
+> cache is served without contacting the network — upstream 0.4.x re-fetches
+> the bundle digest on every bundle open, adding a network round-trip (and a
+> hard network dependency) to every run even when all files are cached.
+> The library name is kept as `tectonic_bundles`, so `use tectonic_bundles::…`
+> works unchanged. Maintained at <https://github.com/ikhomyakov/tectonic>;
+> intended for use by [`aware-tectonic`].
+>
+> [`tectonic_bundles`]: https://crates.io/crates/tectonic_bundles
+> [`aware-tectonic`]: https://crates.io/crates/aware-tectonic
 
 This crate is part of [the Tectonic
 project](https://tectonic-typesetting.github.io/en-US/). It implements various

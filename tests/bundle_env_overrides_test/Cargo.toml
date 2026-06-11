@@ -6,7 +6,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
-tectonic_bundles = { path = "../../crates/bundles" }
+tectonic_bundles = { package = "aware-tectonic-bundles", path = "../../crates/bundles" }
 
 # decouple this from the the top-level workspace
 [workspace]

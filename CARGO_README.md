@@ -1,4 +1,14 @@
-# The Tectonic Typesetting System
+# The Tectonic Typesetting System (Aware Software fork)
+
+> **`aware-tectonic`** is the Aware Software fork of the [`tectonic`] crate,
+> version 0.16.9. It is identical to upstream except that its bundle crate
+> ([`aware-tectonic-bundles`]) does not contact the network when the bundle
+> cache is warm — upstream re-fetches the bundle digest on every run. The
+> library name is kept as `tectonic`, so `use tectonic::…` works unchanged.
+> Maintained at <https://github.com/ikhomyakov/tectonic>.
+>
+> [`tectonic`]: https://crates.io/crates/tectonic
+> [`aware-tectonic-bundles`]: https://crates.io/crates/aware-tectonic-bundles
 
 The `tectonic` crate delivers a modernized, complete, self-contained
 [TeX](https://en.wikipedia.org/wiki/TeX)/[LaTeX](https://www.latex-project.org/)

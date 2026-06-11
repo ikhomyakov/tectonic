@@ -5,17 +5,19 @@
 lints.workspace = true
 
 [package]
-name = "tectonic"
+name = "aware-tectonic"
 version = "0.16.9"
 authors = ["Peter Williams <peter@newton.cx>"]
 description = """
 A modernized, complete, embeddable TeX/LaTeX engine. Tectonic is forked from the XeTeX
 extension to the classic "Web2C" implementation of TeX and uses the TeXLive distribution
-of support files.
+of support files. This is the Aware Software fork of tectonic 0.16.9: identical to
+upstream except that its bundle crate (aware-tectonic-bundles) does not contact the
+network when the bundle cache is warm.
 """
 homepage = "https://tectonic-typesetting.github.io/"
-documentation = "https://docs.rs/tectonic"
-repository = "https://github.com/tectonic-typesetting/tectonic/"
+documentation = "https://docs.rs/aware-tectonic"
+repository = "https://github.com/ikhomyakov/tectonic/"
 readme = "CARGO_README.md"
 keywords = ["tex", "latex", "typesetting", "font"]
 categories = [
@@ -85,7 +87,7 @@ serde = { version = "^1.0", features = ["derive"], optional = true }
 sha2 = "^0.10"
 clap = { version = "4.5.1", features = ["derive"] }
 tectonic_bridge_core = { path = "crates/bridge_core", version = ">=0.4.0,<1" }
-tectonic_bundles = { path = "crates/bundles", version = ">=0.3.0,<1", default-features = false }
+tectonic_bundles = { package = "aware-tectonic-bundles", path = "crates/bundles", version = ">=0.4.1,<1", default-features = false }
 tectonic_docmodel = { path = "crates/docmodel", version = ">=0.2.0,<1", optional = true }
 tectonic_engine_bibtex = { path = "crates/engine_bibtex", version = ">=0.1.0,<1" }
 tectonic_engine_spx2html = { path = "crates/engine_spx2html", version = ">=0.3.0,<1" }
