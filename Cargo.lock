@@ -163,6 +163,66 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
+name = "aware-tectonic"
+version = "0.16.9"
+dependencies = [
+ "anyhow",
+ "aware-tectonic-bundles",
+ "byte-unit",
+ "cfg-if",
+ "clap",
+ "clap_complete",
+ "error-chain",
+ "filetime",
+ "flate2",
+ "lazy_static",
+ "open",
+ "quick-xml",
+ "regex",
+ "serde",
+ "sha2",
+ "tar",
+ "tectonic_bridge_core",
+ "tectonic_docmodel",
+ "tectonic_engine_bibtex",
+ "tectonic_engine_spx2html",
+ "tectonic_engine_xdvipdfmx",
+ "tectonic_engine_xetex",
+ "tectonic_errors",
+ "tectonic_geturl",
+ "tectonic_io_base",
+ "tectonic_status_base",
+ "tectonic_xdv",
+ "tectonic_xetex_layout",
+ "tempfile",
+ "termcolor",
+ "tokio",
+ "toml",
+ "tracing",
+ "tracing-subscriber",
+ "walkdir",
+ "watchexec",
+ "watchexec-filterer-globset",
+ "watchexec-signals",
+ "watchexec-supervisor",
+ "which",
+ "zip",
+]
+
+[[package]]
+name = "aware-tectonic-bundles"
+version = "0.4.1"
+dependencies = [
+ "flate2",
+ "tectonic_errors",
+ "tectonic_geturl",
+ "tectonic_io_base",
+ "tectonic_status_base",
+ "url",
+ "zip",
+]
+
+[[package]]
 name = "backtrace"
 version = "0.3.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2938,53 +2998,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tectonic"
-version = "0.16.9"
-dependencies = [
- "anyhow",
- "byte-unit",
- "cfg-if",
- "clap",
- "clap_complete",
- "error-chain",
- "filetime",
- "flate2",
- "lazy_static",
- "open",
- "quick-xml",
- "regex",
- "serde",
- "sha2",
- "tar",
- "tectonic_bridge_core",
- "tectonic_bundles",
- "tectonic_docmodel",
- "tectonic_engine_bibtex",
- "tectonic_engine_spx2html",
- "tectonic_engine_xdvipdfmx",
- "tectonic_engine_xetex",
- "tectonic_errors",
- "tectonic_geturl",
- "tectonic_io_base",
- "tectonic_status_base",
- "tectonic_xdv",
- "tectonic_xetex_layout",
- "tempfile",
- "termcolor",
- "tokio",
- "toml",
- "tracing",
- "tracing-subscriber",
- "walkdir",
- "watchexec",
- "watchexec-filterer-globset",
- "watchexec-signals",
- "watchexec-supervisor",
- "which",
- "zip",
-]
-
-[[package]]
 name = "tectonic_bridge_core"
 version = "0.5.2"
 dependencies = [
@@ -3058,19 +3071,6 @@ name = "tectonic_bridge_png"
 version = "0.1.2"
 dependencies = [
  "tectonic_dep_support",
-]
-
-[[package]]
-name = "tectonic_bundles"
-version = "0.4.1"
-dependencies = [
- "flate2",
- "tectonic_errors",
- "tectonic_geturl",
- "tectonic_io_base",
- "tectonic_status_base",
- "url",
- "zip",
 ]
 
 [[package]]
