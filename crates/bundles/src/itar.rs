@@ -47,7 +47,7 @@ impl FileInfo for ItarFileInfo {
 }
 
 /// A simple FileIndex for compatiblity with [`crate::BundleCache`]
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone)]
 pub struct ItarFileIndex {
     content: HashMap<String, ItarFileInfo>,
 }
@@ -199,7 +199,26 @@ impl CachableBundle<'_, ItarFileIndex> for ItarBundle {
     }
 
     fn initialize_index(&mut self, source: &mut dyn Read) -> Result<()> {
+        // BEGIN AWARE REPORTS PATCH
+        // Parsing the bundle index (tens of thousands of entries) costs tens
+        // of milliseconds, and a process that renders in several passes (the
+        // ARL measurement pass + final pass) builds a fresh bundle per pass,
+        // re-parsing the identical index each time. Memoize the parsed index
+        // process-wide, keyed by bundle URL. The index for a given URL is
+        // immutable for the life of a process.
+        {
+            let memo = index_memo().lock().unwrap();
+            if let Some(idx) = memo.get(&self.url) {
+                self.index = idx.clone();
+                return Ok(());
+            }
+        }
         self.index.initialize(source)?;
+        index_memo()
+            .lock()
+            .unwrap()
+            .insert(self.url.clone(), self.index.clone());
+        // END AWARE REPORTS PATCH
         Ok(())
     }
 
@@ -295,3 +314,13 @@ impl CachableBundle<'_, ItarFileIndex> for ItarBundle {
         ))
     }
 }
+
+// BEGIN AWARE REPORTS PATCH
+/// Process-wide memo of parsed bundle indices, keyed by bundle URL.
+fn index_memo() -> &'static std::sync::Mutex<std::collections::HashMap<String, ItarFileIndex>> {
+    static MEMO: std::sync::OnceLock<
+        std::sync::Mutex<std::collections::HashMap<String, ItarFileIndex>>,
+    > = std::sync::OnceLock::new();
+    MEMO.get_or_init(Default::default)
+}
+// END AWARE REPORTS PATCH
