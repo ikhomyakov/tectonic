@@ -211,7 +211,7 @@ dependencies = [
 
 [[package]]
 name = "aware-tectonic-bundles"
-version = "0.4.1"
+version = "0.4.3"
 dependencies = [
  "flate2",
  "tectonic_errors",

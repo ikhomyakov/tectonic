@@ -246,6 +246,16 @@ struct BridgeState {
     /// output.
     genuine_stdout: Option<GenuineStdoutIo>,
 
+    // BEGIN AWARE REPORTS PATCH
+    /// When set, output files stream directly to the filesystem instead of
+    /// buffering in `mem`, giving an O(1) memory footprint independent of
+    /// document size (the XDV and PDF of a large report otherwise sit in
+    /// RAM in their entirety). Tried before all other providers for output
+    /// opens; read-back of written files is served by `filesystem`, which
+    /// shares the same root.
+    disk_outputs: Option<FilesystemIo>,
+    // END AWARE REPORTS PATCH
+
     /// A possible alternative "primary input" when generating format files. If
     /// Some(), we're in format-file generation mode; in most cases this is
     /// None.
@@ -484,6 +494,11 @@ macro_rules! bridgestate_ioprovider_cascade {
 impl IoProvider for BridgeState {
     fn output_open_name(&mut self, name: &str) -> OpenResult<OutputHandle> {
         let r = (|| {
+            // BEGIN AWARE REPORTS PATCH
+            if let Some(ref mut p) = self.disk_outputs {
+                bridgestate_ioprovider_try!(p, output_open_name(name));
+            }
+            // END AWARE REPORTS PATCH
             bridgestate_ioprovider_cascade!(self, output_open_name(name));
         })();
 
@@ -812,6 +827,7 @@ pub struct ProcessingSessionBuilder {
     print_stdout: bool,
     bundle: Option<Box<dyn Bundle>>,
     keep_intermediates: bool,
+    outputs_to_filesystem: bool,
     keep_logs: bool,
     synctex: bool,
     build_date: Option<SystemTime>,
@@ -965,6 +981,19 @@ impl ProcessingSessionBuilder {
         self.keep_intermediates = k;
         self
     }
+
+    // BEGIN AWARE REPORTS PATCH
+    /// If set to `true`, output files (XDV, PDF, logs, aux files) are
+    /// streamed directly to the filesystem root as the engines write them,
+    /// instead of being buffered in memory until the session ends. This
+    /// keeps the session's memory footprint independent of the document
+    /// size. Files land in the filesystem root regardless of
+    /// `keep_intermediates`.
+    pub fn outputs_to_filesystem(&mut self, k: bool) -> &mut Self {
+        self.outputs_to_filesystem = k;
+        self
+    }
+    // END AWARE REPORTS PATCH
 
     /// If set to `true`, '.log' and '.blg' files will be written out to the filesystem.
     pub fn keep_logs(&mut self, k: bool) -> &mut Self {
@@ -1188,6 +1217,19 @@ impl ProcessingSessionBuilder {
 
         let mem = MemoryIo::new(true);
 
+        // BEGIN AWARE REPORTS PATCH
+        let disk_outputs = if self.outputs_to_filesystem {
+            Some(FilesystemIo::new(
+                &filesystem_root,
+                true,
+                false,
+                HashSet::new(),
+            ))
+        } else {
+            None
+        };
+        // END AWARE REPORTS PATCH
+
         let bs = BridgeState {
             primary_input: pio,
             mem,
@@ -1199,6 +1241,7 @@ impl ProcessingSessionBuilder {
             genuine_stdout,
             format_primary: None,
             events: HashMap::new(),
+            disk_outputs,
         };
 
         // Now we can do the rest.
