@@ -164,10 +164,11 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
 name = "aware-tectonic"
-version = "0.16.10"
+version = "0.16.11"
 dependencies = [
  "anyhow",
  "aware-tectonic-bundles",
+ "aware-tectonic-engine-xdvipdfmx",
  "byte-unit",
  "cfg-if",
  "clap",
@@ -186,7 +187,6 @@ dependencies = [
  "tectonic_docmodel",
  "tectonic_engine_bibtex",
  "tectonic_engine_spx2html",
- "tectonic_engine_xdvipdfmx",
  "tectonic_engine_xetex",
  "tectonic_errors",
  "tectonic_geturl",
@@ -220,6 +220,17 @@ dependencies = [
  "tectonic_status_base",
  "url",
  "zip",
+]
+
+[[package]]
+name = "aware-tectonic-engine-xdvipdfmx"
+version = "0.4.4"
+dependencies = [
+ "cc",
+ "libc",
+ "tectonic_bridge_core",
+ "tectonic_errors",
+ "tectonic_pdf_io",
 ]
 
 [[package]]
@@ -3126,17 +3137,6 @@ dependencies = [
  "tectonic_xdv",
  "tempfile",
  "tera",
-]
-
-[[package]]
-name = "tectonic_engine_xdvipdfmx"
-version = "0.4.4"
-dependencies = [
- "cc",
- "libc",
- "tectonic_bridge_core",
- "tectonic_errors",
- "tectonic_pdf_io",
 ]
 
 [[package]]

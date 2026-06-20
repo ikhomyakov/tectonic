@@ -6,19 +6,25 @@
 lints.workspace = true
 
 [package]
-name = "tectonic_engine_xdvipdfmx"
+name = "aware-tectonic-engine-xdvipdfmx"
 version = "0.4.4"
 authors = ["Peter Williams <peter@newton.cx>"]
 description = """
-The `xdvipdfmx` program as a reusable crate.
+The `xdvipdfmx` program as a reusable crate. This is the Aware Software fork of
+tectonic_engine_xdvipdfmx 0.4.4: identical to upstream except that the embedded
+xdvipdfmx exposes a configurable PDF page-origin offset (defaulting to upstream's
+1 inch) so callers can request a 0-inch origin.
 """
 homepage = "https://tectonic-typesetting.github.io/"
-documentation = "https://docs.rs/tectonic_engine_xdvipdfmx"
-repository = "https://github.com/tectonic-typesetting/tectonic/"
+documentation = "https://docs.rs/aware-tectonic-engine-xdvipdfmx"
+repository = "https://github.com/ikhomyakov/tectonic/"
 readme = "README.md"
 license = "MIT"
 edition = "2021"
 links = "tectonic_engine_xdvipdfmx"
+
+[lib]
+name = "tectonic_engine_xdvipdfmx"
 
 [dependencies]
 libc = "^0.2"

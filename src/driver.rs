@@ -828,6 +828,12 @@ pub struct ProcessingSessionBuilder {
     bundle: Option<Box<dyn Bundle>>,
     keep_intermediates: bool,
     outputs_to_filesystem: bool,
+    // BEGIN AWARE REPORTS PATCH
+    /// Page-origin offset (x, y) in bp passed to the xdvipdfmx pass. When
+    /// `None`, the engine keeps its default 1-inch origin. Aware Reports sets
+    /// `(0.0, 0.0)` to place the TeX origin at the page corner.
+    pdf_origin_offset: Option<(f64, f64)>,
+    // END AWARE REPORTS PATCH
     keep_logs: bool,
     synctex: bool,
     build_date: Option<SystemTime>,
@@ -991,6 +997,15 @@ impl ProcessingSessionBuilder {
     /// `keep_intermediates`.
     pub fn outputs_to_filesystem(&mut self, k: bool) -> &mut Self {
         self.outputs_to_filesystem = k;
+        self
+    }
+
+    /// Set the PDF page-origin offset (x, y), in PostScript points (bp),
+    /// applied during the xdvipdfmx pass. The engine's default is 1 inch
+    /// (72.0, 72.0), the standard TeX origin; pass `(0.0, 0.0)` to place the
+    /// TeX origin at the physical page corner.
+    pub fn pdf_origin_offset(&mut self, x: f64, y: f64) -> &mut Self {
+        self.pdf_origin_offset = Some((x, y));
         self
     }
     // END AWARE REPORTS PATCH
@@ -1302,6 +1317,9 @@ impl ProcessingSessionBuilder {
             keep_logs: self.keep_logs,
             synctex_enabled: self.synctex,
             build_date: self.build_date.unwrap_or(SystemTime::UNIX_EPOCH),
+            // BEGIN AWARE REPORTS PATCH
+            pdf_origin_offset: self.pdf_origin_offset,
+            // END AWARE REPORTS PATCH
             unstables: self.unstables,
             shell_escape_mode,
             html_assets_spec_path: self.html_assets_spec_path,
@@ -1368,6 +1386,12 @@ pub struct ProcessingSession {
 
     /// See `TexEngine::with_date` and `XdvipdfmxEngine::with_date`.
     build_date: SystemTime,
+
+    // BEGIN AWARE REPORTS PATCH
+    /// Page-origin offset (x, y) in bp for the xdvipdfmx pass; `None` keeps the
+    /// engine default (1 inch). See `ProcessingSessionBuilder::pdf_origin_offset`.
+    pdf_origin_offset: Option<(f64, f64)>,
+    // END AWARE REPORTS PATCH
 
     unstables: UnstableOptions,
 
@@ -2015,6 +2039,12 @@ impl ProcessingSession {
             if let Some(ref ps) = self.unstables.paper_size {
                 engine.paper_spec(ps.clone());
             }
+
+            // BEGIN AWARE REPORTS PATCH
+            if let Some((x, y)) = self.pdf_origin_offset {
+                engine.origin_offset(x, y);
+            }
+            // END AWARE REPORTS PATCH
 
             engine.process(&mut launcher, &self.tex_xdv_path, &self.tex_pdf_path)?;
         }

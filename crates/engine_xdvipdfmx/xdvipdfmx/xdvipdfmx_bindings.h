@@ -11,6 +11,11 @@ typedef struct {
   unsigned char enable_compression;
   unsigned char deterministic_tags;
   uint64_t build_date;
+  /* BEGIN AWARE REPORTS PATCH */
+  unsigned char override_origin;
+  double x_offset;
+  double y_offset;
+  /* END AWARE REPORTS PATCH */
 } XdvipdfmxConfig;
 
 #ifdef __cplusplus

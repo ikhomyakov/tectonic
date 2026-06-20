@@ -39,6 +39,9 @@ pub struct XdvipdfmxEngine {
     enable_compression: bool,
     deterministic_tags: bool,
     build_date: SystemTime,
+    // BEGIN AWARE REPORTS PATCH
+    origin_offset: Option<(f64, f64)>,
+    // END AWARE REPORTS PATCH
 }
 
 impl Default for XdvipdfmxEngine {
@@ -48,6 +51,11 @@ impl Default for XdvipdfmxEngine {
             enable_compression: true,
             deterministic_tags: false,
             build_date: SystemTime::UNIX_EPOCH,
+            // BEGIN AWARE REPORTS PATCH
+            // `None` keeps upstream behavior: the page origin follows the
+            // engine's own defaults / `pdf:pagesize` specials (1-inch origin).
+            origin_offset: None,
+            // END AWARE REPORTS PATCH
         }
     }
 }
@@ -93,6 +101,21 @@ impl XdvipdfmxEngine {
         self
     }
 
+    // BEGIN AWARE REPORTS PATCH
+    /// Set an authoritative PDF page-origin offset `(x, y)`, in PostScript
+    /// points (bp). When set, this offset is applied at shipout and overrides
+    /// the origin that `pdf:pagesize` specials would otherwise impose — in
+    /// particular XeTeX's `pdf:pagesize default`, which forces the standard
+    /// 1-inch origin. Pass `(0.0, 0.0)` to place the TeX origin at the physical
+    /// page corner (equivalent to the `-x 0in -y 0in` flags of the standalone
+    /// xdvipdfmx, but actually honored). Leaving it unset keeps upstream
+    /// behavior. Page width/height and landscape from specials are unaffected.
+    pub fn origin_offset(&mut self, x: f64, y: f64) -> &mut Self {
+        self.origin_offset = Some((x, y));
+        self
+    }
+    // END AWARE REPORTS PATCH
+
     /// Run xdvipdfmx.
     ///
     /// The *launcher* parameter gives overarching environmental context in
@@ -123,6 +146,11 @@ impl XdvipdfmxEngine {
                 .duration_since(SystemTime::UNIX_EPOCH)
                 .expect("invalid build date")
                 .as_secs(),
+            // BEGIN AWARE REPORTS PATCH
+            override_origin: u8::from(self.origin_offset.is_some()),
+            x_offset: self.origin_offset.map(|o| o.0).unwrap_or(72.0),
+            y_offset: self.origin_offset.map(|o| o.1).unwrap_or(72.0),
+            // END AWARE REPORTS PATCH
         };
 
         let cdvi = CString::new(dvi)?;
@@ -158,6 +186,11 @@ pub mod c_api {
         pub enable_compression: libc::c_uchar,
         pub deterministic_tags: libc::c_uchar,
         pub build_date: u64,
+        // BEGIN AWARE REPORTS PATCH
+        pub override_origin: libc::c_uchar,
+        pub x_offset: f64,
+        pub y_offset: f64,
+        // END AWARE REPORTS PATCH
     }
 
     #[allow(improper_ctypes)] // for CoreBridgeState

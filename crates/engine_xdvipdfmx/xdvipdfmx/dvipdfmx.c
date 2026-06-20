@@ -107,6 +107,15 @@ static double x_offset = 72.0;
 static double y_offset = 72.0;
 static int translate_origin = 0;
 
+/* BEGIN AWARE REPORTS PATCH */
+/* When aware_override_origin is set, the page-origin offset is forced to
+ * (aware_x_origin, aware_y_origin) at shipout, overriding the offset that
+ * dvi_scan_specials derives from XeTeX's `pdf:pagesize default` special. */
+static int    aware_override_origin = 0;
+static double aware_x_origin = 72.0;
+static double aware_y_origin = 72.0;
+/* END AWARE REPORTS PATCH */
+
 static void
 select_paper (const char *paperspec)
 {
@@ -275,7 +284,18 @@ do_dvi_pages (void)
           mediabox.ury = page_height;
           pdf_doc_set_mediabox(page_count+1, &mediabox);
         }
-        dvi_do_page(page_height, x_offset, y_offset);
+        /* BEGIN AWARE REPORTS PATCH */
+        /* When the caller configured an authoritative page origin, use it
+         * directly. XeTeX always emits `\special{pdf:pagesize default}`, which
+         * dvi_scan_specials resolves to a hardcoded 1-inch origin
+         * (dpx-dvi.c scan_special) and would otherwise clobber the requested
+         * offset on every page. Width/height/landscape from specials are left
+         * untouched. */
+        if (aware_override_origin)
+          dvi_do_page(page_height, aware_x_origin, aware_y_origin);
+        else
+          dvi_do_page(page_height, x_offset, y_offset);
+        /* END AWARE REPORTS PATCH */
         page_count++;
         dpx_message("]");
       }
@@ -331,7 +351,12 @@ dvipdfmx_main (
   bool quiet,
   unsigned int verbose,
   time_t build_date,
-  const char *paperspec)
+  const char *paperspec,
+  /* BEGIN AWARE REPORTS PATCH -- authoritative page-origin offset, in bp */
+  int override_origin,
+  double x_origin,
+  double y_origin)
+  /* END AWARE REPORTS PATCH */
 {
   double dvi2pts;
   const char *creator = NULL;
@@ -349,6 +374,15 @@ dvipdfmx_main (
   assert(dvi_filename);
 
   translate_origin = translate;
+
+  /* BEGIN AWARE REPORTS PATCH */
+  /* Record the caller's authoritative page origin. When set, it is applied at
+   * shipout (do_dvi_pages) and overrides the 1-inch origin that XeTeX's
+   * `pdf:pagesize default` special forces via dvi_scan_specials. */
+  aware_override_origin = override_origin;
+  aware_x_origin = x_origin;
+  aware_y_origin = y_origin;
+  /* END AWARE REPORTS PATCH */
 
   page_ranges = NULL;
   num_page_ranges = 0;
@@ -522,7 +556,12 @@ tt_engine_xdvipdfmx_main(
     false, /* quiet */
     0, /* verbose */
     (time_t) config->build_date,
-    config->paperspec
+    config->paperspec,
+    /* BEGIN AWARE REPORTS PATCH */
+    (int) config->override_origin,
+    config->x_offset,
+    config->y_offset
+    /* END AWARE REPORTS PATCH */
   );
 
   ttbc_global_engine_exit();
