@@ -495,8 +495,16 @@ impl IoProvider for BridgeState {
     fn output_open_name(&mut self, name: &str) -> OpenResult<OutputHandle> {
         let r = (|| {
             // BEGIN AWARE REPORTS PATCH
-            if let Some(ref mut p) = self.disk_outputs {
-                bridgestate_ioprovider_try!(p, output_open_name(name));
+            // Stream outputs to disk only for normal passes. During format
+            // generation (format_primary is Some) the engine dumps the .fmt as
+            // an output; make_format_pass harvests it from the in-memory layer
+            // (self.mem.files) to populate the format cache. Diverting it to
+            // disk_outputs would leave the cache empty and break cold-start
+            // format builds ("cannot open the format file").
+            if self.format_primary.is_none() {
+                if let Some(ref mut p) = self.disk_outputs {
+                    bridgestate_ioprovider_try!(p, output_open_name(name));
+                }
             }
             // END AWARE REPORTS PATCH
             bridgestate_ioprovider_cascade!(self, output_open_name(name));

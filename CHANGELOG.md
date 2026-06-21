@@ -1,3 +1,15 @@
+# aware-tectonic 0.16.12 (Aware Software fork)
+
+- Fix cold-start format generation: with `outputs_to_filesystem(true)`, the
+  format-build pass dumped the generated `.fmt` to the filesystem work dir
+  instead of the in-memory layer that `make_format_pass` harvests, so the
+  format was never written to the format cache and the next pass aborted with
+  `cannot open the format file "plain"`. The output diversion to `disk_outputs`
+  is now skipped while in format-generation mode (`format_primary.is_some()`),
+  restoring upstream behavior for the format dump. Regression introduced in
+  0.16.10 (the `outputs_to_filesystem` extension); masked until now by a
+  pre-warmed format cache.
+
 # tectonic 0.16.9 (2026-04-17)
 
 Quick update to fix a major bug on macOS
